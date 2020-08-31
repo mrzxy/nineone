@@ -2,6 +2,7 @@ package nineone
 
 import (
 	"flag"
+	"fmt"
 	"net/url"
 	"nineone/db"
 	"reflect"
@@ -26,7 +27,7 @@ type ListResultData struct {
 
 type listResultItem struct {
 	Viewkey   string
-	Img       string
+	Image       string
 	Author    string
 	UpTime    string `json:"up_time"`
 	Title     string
@@ -60,7 +61,7 @@ func (s *Spider) fetchList(page int, limit int) (listResult, error) {
 }
 func (s *Spider) Run() {
 	log := NewLogrus("fetchList")
-	page := 1
+	page := 0
 	limit := 50
 	errNo := 0
 	//tu := timeUtil{time.Now()}
@@ -68,10 +69,7 @@ func (s *Spider) Run() {
 	//zeroT := tu.ZeroTime().AddDate(0, 0, -*day)
 	over := false
 	for {
-		if over {
-			log.Info("fetch over")
-			return
-		}
+
 
 		res, err := s.fetchList(page, limit)
 		if err != nil {
@@ -82,6 +80,7 @@ func (s *Spider) Run() {
 			errNo += 1
 			continue
 		}
+		fmt.Println(res.Data.List)
 
 		errNo = 0
 		page += 1
@@ -99,16 +98,23 @@ func (s *Spider) Run() {
 				Where("vid = ?", v.Vid).First(&db.VideoList{}).RecordNotFound()
 			if exist {
 				existNo += 1
+				continue
 			}
 			m := db.VideoList{}
 			CopyStruct(&v, &m)
 			data = append(data, m)
 		}
+		if over {
+			log.Info("fetch over")
+			return
+		}
+
 		log.Infof("存在 %d, 需要插入 %d", existNo, len(data))
 		if len(data) > 0 {
 			n, err := db.BatchInsert(data)
 			log.Infof("插入了 %d, err: %v", n, err)
 		}
+
 		time.Sleep(time.Second * 5)
 	}
 }

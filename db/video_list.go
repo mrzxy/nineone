@@ -4,7 +4,7 @@ type VideoList struct {
 	BasicModel
 
 	Viewkey   string
-	Img       string
+	Image       string
 	Author    string
 	UpTime    string
 	Title     string
