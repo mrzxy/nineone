@@ -11,6 +11,7 @@ import (
 
 var listUrl = "https://api.zhaiclub.com/source/source_list"
 var day = flag.Int("day", 5, "")
+var fp = flag.Int("fp", 30, "")
 
 type listResult struct {
 	Status int
@@ -88,8 +89,9 @@ func (s *Spider) Run() {
 		data := []interface{}{}
 		existNo := 0
 		for _, v := range res.Data.List {
-			tt, _ := time.ParseInLocation("2006-01-02", v.UpTime, loc)
-			if tt.Before(zeroT) && !zeroT.Equal(tt) {
+			//tt, _ := time.ParseInLocation("2006-01-02", v.UpTime, loc)
+			//if tt.Before(zeroT) && !zeroT.Equal(tt) {
+			if page > *fp {
 				over = true
 				break
 			}
