@@ -63,9 +63,9 @@ func (s *Spider) Run() {
 	page := 1
 	limit := 50
 	errNo := 0
-	tu := timeUtil{time.Now()}
-	loc, _ := time.LoadLocation("Asia/Shanghai") //设置时区
-	zeroT := tu.ZeroTime().AddDate(0, 0, -*day)
+	//tu := timeUtil{time.Now()}
+	//loc, _ := time.LoadLocation("Asia/Shanghai") //设置时区
+	//zeroT := tu.ZeroTime().AddDate(0, 0, -*day)
 	over := false
 	for {
 		if over {
