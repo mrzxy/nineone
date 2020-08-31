@@ -1,7 +1,7 @@
 package nineone
 
 import (
-	"fmt"
+	"flag"
 	"net/url"
 	"nineone/db"
 	"reflect"
@@ -10,6 +10,7 @@ import (
 )
 
 var listUrl = "https://api.zhaiclub.com/source/source_list"
+var day = flag.Int("day", 5, "")
 
 type listResult struct {
 	Status int
@@ -63,7 +64,7 @@ func (s *Spider) Run() {
 	errNo := 0
 	tu := timeUtil{time.Now()}
 	loc, _ := time.LoadLocation("Asia/Shanghai") //设置时区
-	zeroT := tu.ZeroTime().AddDate(0, 0, -1)
+	zeroT := tu.ZeroTime().AddDate(0, 0, -*day)
 	over := false
 	for {
 		if over {
@@ -88,7 +89,6 @@ func (s *Spider) Run() {
 		existNo := 0
 		for _, v := range res.Data.List {
 			tt, _ := time.ParseInLocation("2006-01-02", v.UpTime, loc)
-			fmt.Println(tt,zeroT)
 			if tt.Before(zeroT) && !zeroT.Equal(tt) {
 				over = true
 				break
@@ -100,7 +100,6 @@ func (s *Spider) Run() {
 			}
 			m := db.VideoList{}
 			CopyStruct(&v, &m)
-			fmt.Println(m)
 			data = append(data, m)
 		}
 		log.Infof("存在 %d, 需要插入 %d", existNo, len(data))
@@ -108,6 +107,7 @@ func (s *Spider) Run() {
 			n, err := db.BatchInsert(data)
 			log.Infof("插入了 %d, err: %v", n, err)
 		}
+		time.Sleep(time.Second * 5)
 	}
 }
 
