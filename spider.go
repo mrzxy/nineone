@@ -119,6 +119,28 @@ func (s *Spider) Run() {
 	}
 }
 
+type fetchDetailRes struct {
+	Code int
+	Msg string
+	Data string
+}
+func (s *Spider) FetchDetail(uri string) (fetchDetailRes, error) {
+	resJson := fetchDetailRes{}
+	item := url.Values{}
+	item.Set("key", "TJw92fDnLsChYvkX")
+	item.Set("act", "url")
+
+	req, _ := BuildGetReq(uri, "GET", item)
+	res, err := req.Do()
+	if err != nil {
+		return resJson, err
+	}
+	if err := res.Body.FromJsonTo(&resJson); err != nil {
+		return resJson, err
+	}
+	return resJson, nil
+}
+
 func NewSpider() *Spider {
 	return &Spider{}
 }
