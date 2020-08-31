@@ -74,7 +74,7 @@ func (s *Spider) Run() {
 
 		res, err := s.fetchList(page, limit)
 		if err != nil {
-			if errNo >= 3 {
+			if errNo >= 5 {
 				log.Error("重试尝过3次以上", err)
 			}
 			log.Error(err)
@@ -94,7 +94,7 @@ func (s *Spider) Run() {
 				break
 			}
 			exist := ! db.DB().Select("id").
-				Where("vid = ?", v.Vid).First(db.VideoList{}).RecordNotFound()
+				Where("vid = ?", v.Vid).First(&db.VideoList{}).RecordNotFound()
 			if exist {
 				existNo += 1
 			}
