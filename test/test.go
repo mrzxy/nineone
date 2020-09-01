@@ -3,30 +3,67 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"os"
-	"golang.org/x/net"
+	"net/url"
+)
+
+const (
+	HttpProxy  = "http://127.0.0.1:1087"
+	SocksProxy = "socks5://127.0.0.1:1087"
 )
 
 func main() {
-	// create a socks5 dialer
-	dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:1080", nil, proxy.Direct)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "can't connect to the proxy:", err)
-		os.Exit(1)
+	proxy := func(_ *http.Request) (*url.URL, error) {
+		return url.Parse(HttpProxy)
 	}
-	// setup a http client
-	httpTransport := &http.Transport{}
-	httpClient := &http.Client{Transport: httpTransport}
-	// set our socks5 as the dialer
-	httpTransport.Dial = dialer.Dial
-	if resp, err := httpClient.Get("https://down.zhaiclub.com/385770.mp4?act=url&key=TJw92fDnLsChYvkX"); err != nil {
-		log.Fatalln(err)
-	} else {
-		defer resp.Body.Close()
-		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Printf("%s\n", body)
-	}
-}
 
+	httpTransport := &http.Transport{
+		Proxy: proxy,
+	}
+
+	httpClient := &http.Client{
+		Transport: httpTransport,
+	}
+
+	req, err := http.NewRequest("GET", "https://api.ip.sb/ip", nil)
+	if err != nil {
+		// handle error
+	}
+
+	resp, err := httpClient.Do(req)
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		// handle error
+	}
+
+	fmt.Println(string(body))
+
+	proxy = func(_ *http.Request) (*url.URL, error) {
+		return url.Parse(SocksProxy)
+	}
+
+	httpTransport = &http.Transport{
+		Proxy: proxy,
+	}
+
+	httpClient = &http.Client{
+		Transport: httpTransport,
+	}
+
+	req, err = http.NewRequest("GET", "https://down.zhaiclub.com/385770.mp4?act=url&key=TJw92fDnLsChYvkX", nil)
+	if err != nil {
+		// handle error
+	}
+
+	resp, err = httpClient.Do(req)
+	defer resp.Body.Close()
+
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		// handle error
+	}
+
+	fmt.Println(string(body))
+}
