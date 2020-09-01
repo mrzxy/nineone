@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"nineone"
@@ -37,9 +36,8 @@ func videoUrl(w http.ResponseWriter, req *http.Request) {
 	uri := req.URL.Query().Get("url")
 	s := nineone.NewSpider()
 	ret, err := s.FetchDetail(uri)
-	fmt.Println(ret)
 	if err == nil {
-		w.Write([]byte(ret.Data))
+		w.Write([]byte(ret))
 	} else {
 		w.Write([]byte("error"))
 		logrus.Error(err)

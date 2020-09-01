@@ -9,7 +9,7 @@ import (
 
 const (
 	HttpProxy  = "http://127.0.0.1:1087"
-	SocksProxy = "socks5://127.0.0.1:1087"
+	SocksProxy = "socks5://127.0.0.1:1086"
 )
 
 func main() {

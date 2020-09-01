@@ -1,6 +1,8 @@
 package nineone
 
 import (
+	"crypto/md5"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/url"
@@ -124,21 +126,26 @@ type fetchDetailRes struct {
 	Msg string
 	Data string
 }
-func (s *Spider) FetchDetail(uri string) (fetchDetailRes, error) {
+func (s *Spider) FetchDetail(uri string) (string, error) {
 	resJson := fetchDetailRes{}
-	item := url.Values{}
-	item.Set("key", "TJw92fDnLsChYvkX")
-	item.Set("act", "url")
 
-	req, _ := BuildGetReq(uri, "GET", item)
-	res, err := req.Do()
+	md5Val := fmt.Sprintf("%x", md5.Sum([]byte(uri)))
+	if n := db.Redis().Exists(md5Val).Val(); n > 0 {
+		return db.Redis().Get(md5Val).String(), nil
+	}
+
+	uri = fmt.Sprintf("%s?key=%s&act=url", uri, "TJw92fDnLsChYvkX")
+	resp, err := RequestBySocket5(uri)
+	//req, _ := BuildGetReq(uri, "GET", item)
+	//res, err := req.Do()
 	if err != nil {
-		return resJson, err
+		return "", err
 	}
-	if err := res.Body.FromJsonTo(&resJson); err != nil {
-		return resJson, err
+	if err := json.Unmarshal(resp, &resJson); err != nil {
+		return "", err
 	}
-	return resJson, nil
+	db.Redis().Set(md5Val, resJson.Data, time.Hour)
+	return resJson.Data, nil
 }
 
 func NewSpider() *Spider {

@@ -14,7 +14,11 @@ type Config struct {
 		MySqlUrl       string  `yaml:"MySqlUrl"` // 数据库连接地址
 		Debug          bool    `yaml:"Debug"`
 	} `yaml:"Server"`
-
+	Redis struct {
+		Addr     string `yaml:"Addr"`
+		Password string `yaml:"Password"`
+		DB       int    `yaml:"DB"`
+	} `yaml:"Redis"`
 }
 
 func InitConfig(filename string) {
