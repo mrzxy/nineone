@@ -28,7 +28,7 @@ func videoList(w http.ResponseWriter, req *http.Request) {
 
 	iPage = (iPage - 1) * iLimit
 	var data []db.VideoList
-	db.DB().Offset(iPage).Limit(iLimit).Order("id desc").Find(&data)
+	db.DB().Offset(iPage).Limit(iLimit).Order("up_time desc").Find(&data)
 	w.Write(toJson(data))
 	return
 }

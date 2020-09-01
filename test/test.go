@@ -2,17 +2,31 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"golang.org/x/net"
 )
 
 func main() {
-	loc, _ := time.LoadLocation("Asia/Shanghai")                        //设置时区
-	now := time.Now()
-	d := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
-	d = d.AddDate(0,0,-30)
-	s := "2020-08-23"
-	tt, _ := time.ParseInLocation("2006-01-02", s, loc) //2006-01-02 15:04:05是转换的格式如php的"Y-m-d H:i:s"
-	fmt.Println(tt, d)
-	fmt.Println(tt.Before(d))
+	// create a socks5 dialer
+	dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:1080", nil, proxy.Direct)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "can't connect to the proxy:", err)
+		os.Exit(1)
+	}
+	// setup a http client
+	httpTransport := &http.Transport{}
+	httpClient := &http.Client{Transport: httpTransport}
+	// set our socks5 as the dialer
+	httpTransport.Dial = dialer.Dial
+	if resp, err := httpClient.Get("https://down.zhaiclub.com/385770.mp4?act=url&key=TJw92fDnLsChYvkX"); err != nil {
+		log.Fatalln(err)
+	} else {
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Printf("%s\n", body)
+	}
 }
 
