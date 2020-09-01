@@ -131,7 +131,7 @@ func (s *Spider) FetchDetail(uri string) (string, error) {
 
 	md5Val := fmt.Sprintf("%x", md5.Sum([]byte(uri)))
 	if n := db.Redis().Exists(md5Val).Val(); n > 0 {
-		return db.Redis().Get(md5Val).String(), nil
+		return db.Redis().Get(md5Val).Val(), nil
 	}
 
 	uri = fmt.Sprintf("%s?key=%s&act=url", uri, "TJw92fDnLsChYvkX")
