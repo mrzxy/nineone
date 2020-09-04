@@ -126,26 +126,37 @@ type fetchDetailRes struct {
 	Msg string
 	Data string
 }
-func (s *Spider) FetchDetail(uri string) (string, error) {
-	resJson := fetchDetailRes{}
+func (s *Spider) FetchDetail(id string) (map[string]interface{}, error) {
+	resJson := make(map[string]interface{})
 
-	md5Val := fmt.Sprintf("%x", md5.Sum([]byte(uri)))
+	m := db.VideoList{}
+	if err := db.DB().Where("id = ?", id).First(&m).Error; err != nil {
+		return nil, err
+	}
+	resJson["title"] = m.Title
+	resJson["author"] = m.Author
+	resJson["duration"] = m.Duration
+
+	md5Val := fmt.Sprintf("a_%x", md5.Sum([]byte(m.VideoUrl)))
 	if n := db.Redis().Exists(md5Val).Val(); n > 0 {
-		return db.Redis().Get(md5Val).Val(), nil
+		resJson["uri"] = db.Redis().Get(md5Val).Val()
+		return resJson, nil
 	}
 
-	uri = fmt.Sprintf("%s?key=%s&act=url", uri, "TJw92fDnLsChYvkX")
+	uri := fmt.Sprintf("%s?key=%s&act=url", m.VideoUrl, "TJw92fDnLsChYvkX")
 	resp, err := RequestBySocket5(uri)
 	//req, _ := BuildGetReq(uri, "GET", item)
 	//res, err := req.Do()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if err := json.Unmarshal(resp, &resJson); err != nil {
-		return "", err
+	retJson := fetchDetailRes{}
+	if err := json.Unmarshal(resp, &retJson); err != nil {
+		return nil, err
 	}
-	db.Redis().Set(md5Val, resJson.Data, time.Hour)
-	return resJson.Data, nil
+	db.Redis().Set(md5Val, retJson.Data, time.Hour)
+	resJson["uri"] = retJson.Data
+	return resJson, nil
 }
 
 func NewSpider() *Spider {

@@ -20,6 +20,8 @@ func videoList(w http.ResponseWriter, req *http.Request) {
 	page := req.URL.Query().Get("page")
 	iPage, _ := strconv.Atoi(page)
 	limit := req.URL.Query().Get("per_page")
+	keyword := req.URL.Query().Get("keyword")
+	author := req.URL.Query().Get("author")
 	iLimit, _ := strconv.Atoi(limit)
 	if iLimit == 0 {
 		iLimit = 10
@@ -27,17 +29,25 @@ func videoList(w http.ResponseWriter, req *http.Request) {
 
 	iPage = (iPage - 1) * iLimit
 	var data []db.VideoList
-	db.DB().Offset(iPage).Limit(iLimit).Order("up_time desc").Find(&data)
+	m := db.DB().Offset(iPage)
+	if keyword != "" {
+		m = m.Where("title like ?", "%"+keyword+"%")
+	}
+	if author != "" {
+		m = m.Where("author = ?", author)
+	}
+	m.Limit(iLimit).Order("up_time desc, id desc").Find(&data)
 	w.Write(toJson(data))
 	return
 }
 
 func videoUrl(w http.ResponseWriter, req *http.Request) {
-	uri := req.URL.Query().Get("url")
+	id := req.URL.Query().Get("id")
 	s := nineone.NewSpider()
-	ret, err := s.FetchDetail(uri)
+	ret, err := s.FetchDetail(id)
 	if err == nil {
-		w.Write([]byte(ret))
+		b, _ := json.Marshal(ret)
+		w.Write(b)
 	} else {
 		w.Write([]byte("error"))
 		logrus.Error(err)
